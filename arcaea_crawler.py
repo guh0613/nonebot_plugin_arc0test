@@ -1,8 +1,6 @@
 import websocket
 import brotli
 import json
-import threading
-import asyncio
 
 clear_list = ['Track Lost', 'Normal Clear', 'Full Recall', 'Pure Memory', 'Easy Clear', 'Hard Clear']
 diff_list = ['PST', 'PRS', 'FTR', 'BYD']
@@ -39,9 +37,12 @@ def calc(ptt, song_list):
     for i in range(0, 40):
         if i <= 29:
             if i <= 9:
-                rall += song_list[i]['rating']
-                best30_list.append(song_list[i])
-                brating += song_list[i]['rating']
+                try:
+                    rall += song_list[i]['rating']
+                    best30_list.append(song_list[i])
+                    brating += song_list[i]['rating']
+                except IndexError:
+                    break
             else:
                 try:
                     best30_list.append(song_list[i])
@@ -49,7 +50,10 @@ def calc(ptt, song_list):
                 except IndexError:
                     break
         else:
-            best30_overflow.append(song_list[i])
+            try:
+                best30_overflow.append(song_list[i])
+            except IndexError:
+                break
     ball = brating
     brating /= 30
     rrating = 4 * (ptt - brating * 0.75)
@@ -71,15 +75,6 @@ def lookup(nickname: str):
             put_cache(cache)
             return id
 
-async def query(id: str):
-    s = ""
-    song_title, userinfo, scores = await _query(id)
-    b, r, m, n, t = calc(userinfo['rating'] / 100, scores)
-    s += "玩家: %s\n潜力值: %.2f\nBest 30: %.5f\nRecent Top 10: %.5f\n不更新最高分时可达到的最高ptt: %.6f\n\n" % (userinfo['name'], userinfo['rating'] / 100, b, r, m)
-    score = userinfo['recent_score'][0]
-    s += "最近游玩: \n%s  %s %.1f  \n%s\nPure: %d(%d)\nFar: %d\nLost: %d\n得分: %d\n单曲评级: %.2f" % (song_title[score['song_id']]['en'], diff_list[score['difficulty']], score['constant'], clear_list[score['clear_type']],
-              score["perfect_count"], score["shiny_perfect_count"], score["near_count"], score["miss_count"], score["score"], score["rating"])
-    return s
 
 
 def best(id: str, num: int):
@@ -214,13 +209,7 @@ class Arcaea:
     @staticmethod
     async def run(operation, aid, num=0):
         result = []
-        if operation == 'arcaea':
-            try:
-                message = await query(aid)
-            except Exception as e:
-                message = "An exception occurred: %s" % repr(e)
-            result.append(message)
-        elif operation == 'recent':
+        if operation == 'recent':
             try:
                 s = await recent(aid)
             except Exception as e:

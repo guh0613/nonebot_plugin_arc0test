@@ -34,7 +34,6 @@ arcre <好友码> 查询最近游玩
 
 help = on_command("arc帮助")
 best = on_command("arcbest")
-arc = on_command("arc查询")
 ds = on_command("查询定数")
 recent = on_command("arcre")
 bind = on_command("arcbind")
@@ -46,7 +45,6 @@ updateds = on_command("更新定数表",permission=SUPERUSER)
 @help.handle()
 async def help():
     await help.send(help_text)
-
 
 @bind.handle()
 async def arcbind(ev:MessageEvent, arg: Message = CommandArg()):
@@ -84,20 +82,6 @@ async def dstable():
         await updateds.finish("发生错误")
     await  updateds.send("更新定数表成功")
 
-
-@arc.handle()
-async def arcaea(ev: MessageEvent, arg: Message = CommandArg()):
-    uid = str(ev.user_id)
-    aid = arg.extract_plain_text().strip()
-    if len(aid) < 1:
-        if not uid in player_data.keys():
-            await arc.finish("参数错误")
-        else:
-            aid = player_data[uid]
-    await arc.send("正在查询")
-    result = await Arcaea.run('arcaea', aid)
-    await arc.send(result[0])
-        
 @ds.handle()
 async def arcds(arg = CommandArg()):
     msg = arg.extract_plain_text().strip()
