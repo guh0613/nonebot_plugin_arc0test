@@ -37,16 +37,19 @@ def calc(ptt, song_list):
     brating = 0
     rall = 0
     for i in range(0, 40):
-        if i <=29:
-            try:
+        if i <= 29:
+            if i <= 9:
+                rall += song_list[i]['rating']
                 best30_list.append(song_list[i])
                 brating += song_list[i]['rating']
-            except IndexError:
-                break
+            else:
+                try:
+                    best30_list.append(song_list[i])
+                    brating += song_list[i]['rating']
+                except IndexError:
+                    break
         else:
             best30_overflow.append(song_list[i])
-    for v in range(0,10):
-        rall += song_list[v]['rating']
     ball = brating
     brating /= 30
     rrating = 4 * (ptt - brating * 0.75)
