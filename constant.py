@@ -31,9 +31,8 @@ def on_message(ws,message):
 
                 FILE_PATH = os.path.dirname(__file__)
                 dstable = os.path.join(FILE_PATH , "dstable.py")
-                f=open(dstable, mode="w",encoding='utf-8')
-                f.write('dstable = ' + str(list))
-                f.close()
+                with open(dstable, mode="w",encoding='utf-8') as f:
+                    f.write('dstable = ' + str(list))
                     
 def on_error(ws,error):
     raise error
