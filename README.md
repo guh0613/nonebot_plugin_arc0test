@@ -1,0 +1,2 @@
+# nonebot_plugin_arcaea
+使用estertion api查询arcaea玩家信息的nonebot插件
