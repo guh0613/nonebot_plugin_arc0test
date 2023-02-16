@@ -16,6 +16,7 @@ from .schema.v5.user_info import UserInfo
 from .schema.v5.user_best30 import UserBest30
 from .draw import UserArcaeaInfo
 from .constant import getconstant
+from .assets import AssetsUpdater
 
 DATA = DATA_PATH / "arcaea" / "player.json"
 player_data = {}
@@ -34,9 +35,10 @@ arcre <好友码> 查询最近游玩
 
 help = on_command("arc帮助")
 best = on_command("arcbest")
-ds = on_command("查询定数")
+ds = on_command("arcds")
 recent = on_command("arcre")
 bind = on_command("arcbind")
+update = on_command("arcup",permission=SUPERUSER)
 updateds = on_command("更新定数表",permission=SUPERUSER)
 
 
@@ -76,6 +78,7 @@ async def arcbetter(ev: MessageEvent,arg: Message = CommandArg()):
 
 @updateds.handle()
 async def dstable():
+    await updateds.send("准备更新定数表...")
     try:
         getconstant()
     except Exception:
@@ -108,3 +111,17 @@ async def arcre(ev: MessageEvent, arg: Message = CommandArg()):
     data = UserInfo(**result[0])
     r = await UserArcaeaInfo.draw_user_recent(data)
     await recent.send(r)
+
+@update.handle()
+async def arcup():
+    await update.send("准备更新arc资源文件...")
+    try:
+        result_song = await AssetsUpdater.check_song_update()
+        result_char = await AssetsUpdater.check_char_update()
+        song_num = len(result_song)
+        char_num = len(result_char)
+    except Exception:
+        await update.finish("更新过程出现错误")
+    if song_num == 0 and char_num == 0:
+        await update.finish("arc资源没有更新")
+    await update.send(f"更新完成，共更新{song_num}张曲绘，{song_num}张立绘")
