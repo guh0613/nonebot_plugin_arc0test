@@ -1,4 +1,4 @@
-import websocket
+import websockets
 import brotli
 import json
 
@@ -61,19 +61,19 @@ def calc(ptt, song_list):
     return brating, rrating, maxptt, best30_list, best30_overflow
 
 
-def lookup(nickname: str):
-    ws = websocket.create_connection("wss://arc.estertion.win:616/")
-    ws.send("lookup " + nickname)
-    buffer = ""
-    while buffer != "bye":
-        buffer = ws.recv()
-        if type(buffer) == type(b''):
-            obj2 = json.loads(str(brotli.decompress(buffer), encoding='utf-8'))
-            id = obj2['data'][0]['code']
-            cache = load_cache()
-            cache[nickname] = id
-            put_cache(cache)
-            return id
+async def lookup(nickname: str):
+    async with websockets.connect("wss://arc.estertion.win:616/") as ws:
+        await ws.send("lookup " + nickname)
+        buffer = ""
+        while buffer != "bye":
+            buffer = await ws.recv()
+            if type(buffer) == type(b''):
+                obj2 = json.loads(str(brotli.decompress(buffer), encoding='utf-8'))
+                id = obj2['data'][0]['code']
+                cache = load_cache()
+                cache[nickname] = id
+                put_cache(cache)
+                return id
 
 
 
@@ -105,30 +105,29 @@ async def _query(id: str):
         id = cache[id]
     except KeyError:
         pass
-    ws = websocket.create_connection("wss://arc.estertion.win:616/")
-    ws.send(id)
-    buffer = ""
-    scores = []
-    userinfo = {}
-    song_title = {}
-    while buffer != "bye":
-        try:
-            buffer =  ws.recv()
-        except websocket._exceptions.WebSocketConnectionClosedException:
-            ws = websocket.create_connection("wss://arc.estertion.win:616/")
-            ws.send(lookup(id))
-        if type(buffer) == type(b''):
-            # print("recv")
-            obj = json.loads(str(brotli.decompress(buffer), encoding='utf-8'))
-            # al.append(obj)
-            if obj['cmd'] == 'songtitle':
-                song_title = obj['data']
-            elif obj['cmd'] == 'scores':
-                scores += obj['data']
-            elif obj['cmd'] == 'userinfo':
-                userinfo = obj['data']
-    scores.sort(key=cmp, reverse=True)
-    return song_title, userinfo, scores
+    async with websockets.connect("wss://arc.estertion.win:616/") as ws:
+        await ws.send(id)
+        buffer = ""
+        scores = []
+        userinfo = {}
+        song_title = {}
+        while buffer != "bye":
+            try:
+                buffer =  await ws.recv()
+            except Exception:
+                return 0
+            if type(buffer) == type(b''):
+                # print("recv")
+                obj = json.loads(str(brotli.decompress(buffer), encoding='utf-8'))
+                # al.append(obj)
+                if obj['cmd'] == 'songtitle':
+                    song_title = obj['data']
+                elif obj['cmd'] == 'scores':
+                    scores += obj['data']
+                elif obj['cmd'] == 'userinfo':
+                    userinfo = obj['data']
+        scores.sort(key=cmp, reverse=True)
+        return song_title, userinfo, scores
 
 def get_b30_dict(id, songtitle: dict, userinfo: dict, scores: list):
     b30_dict = {}
