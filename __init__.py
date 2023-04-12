@@ -80,7 +80,7 @@ async def arcbetter(ev: MessageEvent,arg: Message = CommandArg()):
 async def dstable():
     await updateds.send("准备更新定数表...")
     try:
-        getconstant()
+        await getconstant()
     except Exception:
         await updateds.finish("发生错误")
     await  updateds.send("更新定数表成功")
