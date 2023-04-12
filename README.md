@@ -1,4 +1,4 @@
-使用estertion api查询arcaea玩家信息的zhenxun_bot插件
+使用estertion api查询arcaea玩家信息的nonebot2插件
 
 ## Credits
 本项目参考了以下项目的代码：
